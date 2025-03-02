@@ -1,4 +1,3 @@
-
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -8,68 +7,111 @@
 
 <body bgcolor="#CCCCCC">
 
+<!--
+####################################
+###   Name:    Tetris            ###
+###   Author:  Brian Dumbacher   ###
+####################################
+-->
+
 <div id="divEmpty" style="margin: 0 auto; text-align: center; height:100px;">
 </div>
 
-<div id="divCanvases" style="position:relative; border:2px solid black; margin: 0 auto; width: 500px; height: 500px;">
+<!--
+####################
+###   Canvases   ###
+####################
+
+Background effects canvas
+Particle effects canvas
+Board canvas
+Blast canvas
+Block canvas
+Piece canvas
+Shadow canvas
+Twinkle effects canvas
+Cleared rows effects canvas
+-->
+
+<div id="divCanvases" style="position: relative; border: 2px solid black; margin: 0 auto; width: 600px; height: 600px;">
 <canvas id="canvasFXBG" style="z-index: 1; position:absolute; left:0px; top:0px;"></canvas>
 <canvas id="canvasFXPA" style="z-index: 2; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBD" style="z-index: 3; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBT" style="z-index: 4; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBL" style="z-index: 5; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasPI" style="z-index: 6; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasSH" style="z-index: 7; position:absolute; left:0px; top:0px;"></canvas>
+<canvas id="canvasBD"   style="z-index: 3; position:absolute; left:0px; top:0px;"></canvas>
+<canvas id="canvasBT"   style="z-index: 4; position:absolute; left:0px; top:0px;"></canvas>
+<canvas id="canvasBL"   style="z-index: 5; position:absolute; left:0px; top:0px;"></canvas>
+<canvas id="canvasPI"   style="z-index: 6; position:absolute; left:0px; top:0px;"></canvas>
+<canvas id="canvasSH"   style="z-index: 7; position:absolute; left:0px; top:0px;"></canvas>
 <canvas id="canvasFXTW" style="z-index: 8; position:absolute; left:0px; top:0px;"></canvas>
 <canvas id="canvasFXCR" style="z-index: 9; position:absolute; left:0px; top:0px;"></canvas>
+</div>
+
+<!--
+#################
+###   Audio   ###
+#################
+
+"Connected (Yours Forever) [In-game Mix]" obtained for free from https://downloads.khinsider.com/game-soundtracks/album/tetris-effect-original-soundtrack
+"Hard shovel stab" sound effect obtained for free from https://mixkit.co/free-sound-effects/garden/ and converted to MP3 format using https://cloudconvert.com/wav-to-mp3
+-->
+
+<div id="divAudio" style="align-items: center; display: flex; justify-content: center; position: relative; margin: 0 auto; width: 600px;">
+<audio id="audioMusic" src="media/connected_yours_forever.mp3" loop></audio>
+<audio id="audioShovel" src="media/shovel.mp3"></audio>
 </div>
 
 <script type="text/javascript">
 
 /*
-* Tetris
-* @author Brian Dumbacher
+##########################################
+###   Global constants and variables   ###
+##########################################
 */
 
-// Global constants and variables
+// On-load function
 window.onload = intro;
-const STAGE_WIDTH = 500;
-const STAGE_HEIGHT = 500;
-const BLOCK_DIM = 20;
-const DELAY_MOVE = 500;
-const DELAY_CLEAR = 500;
-const DELAY_NO_CLEAR = 100;
-const DELAY_FX = 15;
+
+// Dimensions and delays
+const STAGE_DIM          = 600;
+const BLOCK_DIM          = 20;
+const DELAY_MOVE         = 500;
+const DELAY_CLEAR        = 500;
+const DELAY_NO_CLEAR     = 100;
+const DELAY_FX           = 15;
 const DELAY_FX_PARTICLES = 15000;
-const NUM_PARTICLES = 150;
-// Colors
-const COL_BLACK = "rgb(0,0,0)";
-const COL_BLUE = "rgb(0,0,255)";
-const COL_GREEN = "rgb(0,255,0)";
-const COL_RED = "rgb(255,0,0)";
-const COL_WHITE = "rgb(255,255,255)";
+
+// Basic colors
+const COL_BLACK = "rgb(  0,   0,   0)";
+const COL_BLUE  = "rgb(  0,   0, 255)";
+const COL_GREEN = "rgb(  0, 255,   0)";
+const COL_RED   = "rgb(255,   0,   0)";
+const COL_WHITE = "rgb(255, 255, 255)";
+
 // Skins
-const skinNames = ["normal", "normal_invert", "rainbow", "stone", "ice", "forest", "gold", "red_triangle", "stars", "stars_invert", "ball", "window"];
-const NUM_SKINS = skinNames.length;
-const NUM_CLEARS_SKIN_CHANGE = 5;
-var skin = 0;
-var skinName = skinNames[skin];
-const COLS_BOARD_BORDER = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
-const COLS_BOARD = [COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK];
-const COLS_BACKGROUND_STATIC = [COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK];
-const COLS_BACKGROUND_R_LOWER = [0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 0, 0];
-const COLS_BACKGROUND_R_UPPER = [255, 255, 255, 255, 0, 0, 255, 255, 255, 255, 255, 255];
-const COLS_BACKGROUND_G_LOWER = [0, 0, 0, 0, 0, 130, 200, 0, 0, 0, 0, 0];
-const COLS_BACKGROUND_G_UPPER = [255, 255, 255, 255, 125, 255, 255, 0, 255, 255, 255, 255];
-const COLS_BACKGROUND_B_LOWER = [0, 0, 0, 0, 130, 0, 0, 0, 0, 0, 0, 0];
-const COLS_BACKGROUND_B_UPPER = [255, 255, 255, 255, 255, 125, 0, 125, 255, 255, 255, 255];
-const COLS_FLASH = [255, 0, 255, 255, 255, 255, 255, 255, 0, 255, 255, 255];
-const COLS_CLEAR_ROWS = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
-const COLS_SHADOW = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
-// Particle paths
-const pathNames = ["wavy", "clover", "spiral", "butterfly", "infinity", "boomerang", "circle", "flower", "suck"];
-const NUM_PATHS = pathNames.length;
-var path = 0;
-var pathName = pathNames[path];
+const skinNames               = ["normal", "normal_invert", "rainbow", "stone", "ice", "forest", "gold", "red_triangle", "stars", "stars_invert", "ball", "window"];
+const NUM_SKINS               = skinNames.length;
+const NUM_CLEARS_SKIN_CHANGE  = 5;
+var skin                      = 0;
+var skinName                  = skinNames[skin];
+const COLS_BOARD_BORDER       = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
+const COLS_BOARD              = [COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK];
+const COLS_BACKGROUND_STATIC  = [COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_BLACK, COL_WHITE, COL_BLACK, COL_BLACK];
+const COLS_BACKGROUND_R_LOWER = [  0,   0,   0,   0,   0,   0, 200,   0,   0,   0,   0,   0];
+const COLS_BACKGROUND_R_UPPER = [255, 255, 255, 255,   0,   0, 255, 255, 255, 255, 255, 255];
+const COLS_BACKGROUND_G_LOWER = [  0,   0,   0,   0,   0, 130, 200,   0,   0,   0,   0,   0];
+const COLS_BACKGROUND_G_UPPER = [255, 255, 255, 255, 125, 255, 255,   0, 255, 255, 255, 255];
+const COLS_BACKGROUND_B_LOWER = [  0,   0,   0,   0, 130,   0,   0,   0,   0,   0,   0,   0];
+const COLS_BACKGROUND_B_UPPER = [255, 255, 255, 255, 255, 125,   0, 125, 255, 255, 255, 255];
+const COLS_FLASH              = [255,   0, 255, 255, 255, 255, 255, 255,   0, 255, 255, 255];
+const COLS_CLEAR_ROWS         = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
+const COLS_SHADOW             = [COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_WHITE, COL_BLACK, COL_WHITE, COL_WHITE];
+
+// Particles and paths
+const NUM_PARTICLES = 150;
+const pathNames     = ["wavy", "clover", "spiral", "butterfly", "infinity", "boomerang", "circle", "flower", "suck"];
+const NUM_PATHS     = pathNames.length;
+var path            = 0;
+var pathName        = pathNames[path];
+
 // Images
 var imgIntro;
 var imgBlock;
@@ -77,6 +119,11 @@ var imgParticle;
 var imgClearedRowsLeft;
 var imgClearedRowsRight;
 var imgBlast;
+
+// Audio
+var audioMusic;
+var audioShovel;
+
 // Game state, canvases, objects, and maps
 var gameState;
 var gameInterval;
@@ -104,120 +151,147 @@ var pieceTypes = ["i", "l", "lb", "t", "z", "zb", "o"];
 var scoreKeeper;
 
 /*
-Introduction and initialization
+###########################################
+###   Introduction and initialization   ###
+###########################################
 */
 
 function intro(){
 	// Game state
 	gameState = "load";
+
 	// Background effects canvas
-	var canvasFXBG = document.getElementById("canvasFXBG");
-	canvasFXBG.width = STAGE_WIDTH;
-	canvasFXBG.height = STAGE_HEIGHT;
-	cfxbg = canvasFXBG.getContext('2d');
+	var canvasFXBG    = document.getElementById("canvasFXBG");
+	canvasFXBG.width  = STAGE_DIM;
+	canvasFXBG.height = STAGE_DIM;
+	cfxbg             = canvasFXBG.getContext('2d');
+
 	// Particle effects canvas
-	var canvasFXPA = document.getElementById("canvasFXPA");
-	canvasFXPA.width = STAGE_WIDTH;
-	canvasFXPA.height = STAGE_HEIGHT;
-	cfxpa = canvasFXPA.getContext('2d');
+	var canvasFXPA    = document.getElementById("canvasFXPA");
+	canvasFXPA.width  = STAGE_DIM;
+	canvasFXPA.height = STAGE_DIM;
+	cfxpa             = canvasFXPA.getContext('2d');
+
 	// Board canvas
-	var canvasBD = document.getElementById("canvasBD");
-	canvasBD.width = STAGE_WIDTH;
-	canvasBD.height = STAGE_HEIGHT;
-	cbd = canvasBD.getContext('2d');
+	var canvasBD    = document.getElementById("canvasBD");
+	canvasBD.width  = STAGE_DIM;
+	canvasBD.height = STAGE_DIM;
+	cbd             = canvasBD.getContext('2d');
+
 	// Blast canvas
-	var canvasBT = document.getElementById("canvasBT");
-	canvasBT.width = STAGE_WIDTH;
-	canvasBT.height = STAGE_HEIGHT;
-	cbt = canvasBT.getContext('2d');
+	var canvasBT    = document.getElementById("canvasBT");
+	canvasBT.width  = STAGE_DIM;
+	canvasBT.height = STAGE_DIM;
+	cbt             = canvasBT.getContext('2d');
+
 	// Block canvas
-	var canvasBL = document.getElementById("canvasBL");
-	canvasBL.width = STAGE_WIDTH;
-	canvasBL.height = STAGE_HEIGHT;
-	cbl = canvasBL.getContext('2d');
+	var canvasBL    = document.getElementById("canvasBL");
+	canvasBL.width  = STAGE_DIM;
+	canvasBL.height = STAGE_DIM;
+	cbl             = canvasBL.getContext('2d');
+
 	// Piece canvas
-	var canvasPI = document.getElementById("canvasPI");
-	canvasPI.width = STAGE_WIDTH;
-	canvasPI.height = STAGE_HEIGHT;
-	cpi = canvasPI.getContext('2d');
+	var canvasPI    = document.getElementById("canvasPI");
+	canvasPI.width  = STAGE_DIM;
+	canvasPI.height = STAGE_DIM;
+	cpi             = canvasPI.getContext('2d');
+
 	// Shadow canvas
-	var canvasSH = document.getElementById("canvasSH");
-	canvasSH.width = STAGE_WIDTH;
-	canvasSH.height = STAGE_HEIGHT;
-	csh = canvasSH.getContext('2d');
+	var canvasSH    = document.getElementById("canvasSH");
+	canvasSH.width  = STAGE_DIM;
+	canvasSH.height = STAGE_DIM;
+	csh             = canvasSH.getContext('2d');
+
 	// Twinkle effects canvas
-	var canvasFXTW = document.getElementById("canvasFXTW");
-	canvasFXTW.width = STAGE_WIDTH;
-	canvasFXTW.height = STAGE_HEIGHT;
-	cfxtw = canvasFXTW.getContext('2d');
+	var canvasFXTW    = document.getElementById("canvasFXTW");
+	canvasFXTW.width  = STAGE_DIM;
+	canvasFXTW.height = STAGE_DIM;
+	cfxtw             = canvasFXTW.getContext('2d');
+
 	// Cleared rows effects canvas
-	var canvasFXCR = document.getElementById("canvasFXCR");
-	canvasFXCR.width = STAGE_WIDTH;
-	canvasFXCR.height = STAGE_HEIGHT;
-	cfxcr = canvasFXCR.getContext('2d');
+	var canvasFXCR    = document.getElementById("canvasFXCR");
+	canvasFXCR.width  = STAGE_DIM;
+	canvasFXCR.height = STAGE_DIM;
+	cfxcr             = canvasFXCR.getContext('2d');
+
 	// Images
-	imgIntro = new Image();
-	imgIntro.src = "images/intro.png";
-	imgIntro.onload = function(){cbd.drawImage(imgIntro, 0, 0, 500, 500, 0, 0, 500, 500);}
-	imgBlock = new Image();
-    imgBlock.src = "images/block.png";
-    imgParticle = new Image();
-    imgParticle.src = "images/particle.png";
-    imgClearedRowsLeft = new Image();
-    imgClearedRowsLeft.src = "images/cleared_rows_left.png";
-    imgClearedRowsRight = new Image();
-    imgClearedRowsRight.src = "images/cleared_rows_right.png";
-    imgBlast = new Image();
-    imgBlast.src = "images/blast.png";
+	imgIntro                = new Image();
+	imgIntro.src            = "media/intro.png";
+	imgIntro.onload         = function(){cbd.drawImage(imgIntro, 0, 0, STAGE_DIM, STAGE_DIM, 0, 0, STAGE_DIM, STAGE_DIM);}
+	imgBlock                = new Image();
+    imgBlock.src            = "media/block.png";
+    imgParticle             = new Image();
+    imgParticle.src         = "media/particle.png";
+    imgClearedRowsLeft      = new Image();
+    imgClearedRowsLeft.src  = "media/cleared_rows_left.png";
+    imgClearedRowsRight     = new Image();
+    imgClearedRowsRight.src = "media/cleared_rows_right.png";
+    imgBlast                = new Image();
+    imgBlast.src            = "media/blast.png";
+
+	// Audio
+	audioMusic  = document.getElementById("audioMusic");
+	audioShovel = document.getElementById("audioShovel");
+
     // Game state
     gameState = "intro";
+
     // Board
-    board = new Board(150, 50);
+    board = new Board(200, 100);
+
     // Blocks
     initBlocks();
+
     // Effects
-    fxBackground = new FXBackground();
-    fxParticles = new FXParticles();
-    fxBlast = new FXBlast();
-    fxTwinkles = new FXTwinkles();
-    fxClearedRows = new FXClearedRows();
-    fxInterval = setInterval(fxLoop, DELAY_FX);
+    fxBackground        = new FXBackground();
+    fxParticles         = new FXParticles();
+    fxBlast             = new FXBlast();
+    fxTwinkles          = new FXTwinkles();
+    fxClearedRows       = new FXClearedRows();
+    fxInterval          = setInterval(fxLoop, DELAY_FX);
     fxParticlesInterval = setInterval(fxParticlesLoop, DELAY_FX_PARTICLES);
+
     // Score keeper
     scoreKeeper = new ScoreKeeper();
+
 	// Event listeners
 	window.addEventListener("keyup", onKeyUp);
 }
 
 /*
-Event listeners
+###########################
+###   Event listeners   ###
+###########################
 */
 
+// On key up event listener
 function onKeyUp(e){
     if (gameState == "intro"){
         switch (e.keyCode){
-            // Space bar
-            case 32:
-            	// Blocks and first piece
-            	cbd.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+            case 32: // Space bar
+            	// Draw board and create first piece
+            	board.clear();
 				board.draw();
-				drawBlocks();
 				newPieceTimeout = setTimeout(newPiece, 0);
+
+				// Play audio
+				audioMusic.currentTime = 20;
+                audioMusic.play();
                 break;
         }
     } else if (gameState == "move"){
         switch (e.keyCode){
-            // Space bar
-            case 32:
+            case 32: // Space bar
             	piece.ra = piece.raShadow;
             	piece.posits = piece.positsShadow;
             	fxBlast.blast();
 	            placePiece();
 	            checkFilledRows();
 	            fxBackground.flash();
+	            audioShovel.currentTime = 0.1;
+            	audioShovel.play();
                 break;
-            // Left
-            case 37:
+            case 37: // Left arrow
             	var positsNew = getPosits(piece.type, piece.rot, piece.ca-1, piece.ra);
             	if (isValidPosits(positsNew)){
             		piece.clear();
@@ -227,9 +301,10 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.currentTime = 0.1;
+            	audioShovel.play();
                 break;
-            // Right
-            case 39:
+            case 39: // Right arrow
             	var positsNew = getPosits(piece.type, piece.rot, piece.ca+1, piece.ra);
             	if (isValidPosits(positsNew)){
             		piece.clear();
@@ -239,9 +314,10 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.currentTime = 0.1;
+            	audioShovel.play();
             	break;
-            // Down
-            case 40:
+            case 40: // Down arrow
             	switch (piece.rot){
             		case "1":
             			var rotNew = "2";
@@ -265,71 +341,114 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.currentTime = 0.1;
+            	audioShovel.play();
+                break;
+        }
+    } else if (gameState == "over"){
+        switch (e.keyCode){
+            case 32: // Space bar
+            	// Clear piece
+            	piece.clear();
+            	piece.clearShadow();
+
+            	// Reset blocks
+            	clearBlocks();
+            	initBlocks();
+
+            	// Reset score keeper
+            	scoreKeeper.reset();
+
+            	// Reset skin and effects
+            	if (skin > 0){
+            		skin = 0;
+					skinName = skinNames[skin];
+					fxBackground.clear();
+					fxBackground.applyNewSkin();
+					fxBackground.draw();
+				}
+				fxTwinkles.clear();
+				fxTwinkles.stopTwinkling();
+
+				// Draw board and create first piece
+            	board.clear();
+				board.draw();
+				newPieceTimeout = setTimeout(newPiece, 0);
                 break;
         }
     }
 }
 
 /*
-Effects
+###################
+###   Effects   ###
+###################
 */
 
 /*
-Background effects
+##############################
+###   Background effects   ###
+##############################
 */
 
 function FXBackground(){
+	// Initialize background effect
 	this.init = function(){
 		// Start with white
-		this.rMain = 255;
-		this.gMain = 255;
-		this.bMain = 255;
+		this.rMain       = 255;
+		this.gMain       = 255;
+		this.bMain       = 255;
 		this.rMainTarget = this.getRandomRValue();
 		this.gMainTarget = this.getRandomGValue();
 		this.bMainTarget = this.getRandomBValue();
-		this.incMain = 1;
-		this.rFlash = 255 - COLS_FLASH[skin];
-		this.gFlash = 255 - COLS_FLASH[skin];
-		this.bFlash = 255 - COLS_FLASH[skin];
-		this.incFlash = 5;
+		this.incMain     = 1;
+		this.rFlash      = 255 - COLS_FLASH[skin];
+		this.gFlash      = 255 - COLS_FLASH[skin];
+		this.bFlash      = 255 - COLS_FLASH[skin];
+		this.incFlash    = 2;
 		this.draw();
 	}
 
+	// Get random R value
     this.getRandomRValue = function(){
     	return parseInt(Math.random() * (COLS_BACKGROUND_R_UPPER[skin] - COLS_BACKGROUND_R_LOWER[skin]) + COLS_BACKGROUND_R_LOWER[skin]);
     }
 
+	// Get random G value
     this.getRandomGValue = function(){
     	return parseInt(Math.random() * (COLS_BACKGROUND_G_UPPER[skin] - COLS_BACKGROUND_G_LOWER[skin]) + COLS_BACKGROUND_G_LOWER[skin]);
     }
 
+    // Get random B value
     this.getRandomBValue = function(){
     	return parseInt(Math.random() * (COLS_BACKGROUND_B_UPPER[skin] - COLS_BACKGROUND_B_LOWER[skin]) + COLS_BACKGROUND_B_LOWER[skin]);
     }
 
+    // Return main RGB value
     this.getRGBMain = function(){
     	return "rgb(" + this.rMain + "," + this.gMain + "," + this.bMain + ")";
     }
 
-    this.newSkin = function(){
+    // Apply new skin
+    this.applyNewSkin = function(){
     	if (skinName == "ice"){
-    		this.rMain = 0;
-    		this.gMain = 0;
+    		this.rMain       = 0;
+    		this.gMain       = 0;
     		this.rMainTarget = 0;
     		this.gMainTarget = 0;
     	} else if (skinName == "forest"){
-    		this.rMain = 0;
-    		this.bMain = 0;
+    		this.rMain       = 0;
+    		this.bMain       = 0;
     		this.rMainTarget = 0;
     		this.bMainTarget = 0;
     	} else if (skinName == "gold"){
-    		this.gMain = 0;
-    		this.bMain = 0;
+    		this.gMain       = 0;
+    		this.bMain       = 0;
     		this.gMainTarget = 0;
     		this.bMainTarget = 0;
     	} else if (skinName == "red_triangle"){
-    		this.gMain = 0;
-    		this.bMain = 0;
+    		this.gMain       = 0;
+    		this.bMain       = 0;
     		this.gMainTarget = 0;
     		this.bMainTarget = 0;
     	} else {
@@ -342,10 +461,12 @@ function FXBackground(){
 		this.bFlash = 255 - COLS_FLASH[skin];
     }
 
+    // Return flash RGB value
     this.getRGBFlash = function(){
     	return "rgb(" + this.rFlash + "," + this.gFlash + "," + this.bFlash + ")";
     }
 
+    // Update background effect
 	this.update = function(){
 		// Main color
 		if (Math.abs(this.rMain - this.rMainTarget) < this.incMain){
@@ -399,8 +520,9 @@ function FXBackground(){
 		}
 	}
 
+	// Draw background effect
 	this.draw = function(){
-		grd = cfxbg.createRadialGradient(STAGE_WIDTH/2, STAGE_HEIGHT/2, 0, STAGE_WIDTH/2, STAGE_HEIGHT/2, 325);
+		grd = cfxbg.createRadialGradient(STAGE_DIM/2, STAGE_DIM/2, 0, STAGE_DIM/2, STAGE_DIM/2, 390);
 		grd.addColorStop(0, COLS_BACKGROUND_STATIC[skin]);
 		grd.addColorStop(0.15, this.getRGBMain());
 		grd.addColorStop(0.35, COLS_BACKGROUND_STATIC[skin]);
@@ -409,13 +531,15 @@ function FXBackground(){
 		grd.addColorStop(0.85, this.getRGBMain());
 		grd.addColorStop(1, COLS_BACKGROUND_STATIC[skin]);
 		cfxbg.fillStyle = grd;
-		cfxbg.fillRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cfxbg.fillRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Clear background effect
 	this.clear = function(){
-		cfxbg.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cfxbg.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Draw background effect flash
 	this.flash = function(){
 		this.rFlash = COLS_FLASH[skin];
 		this.gFlash = COLS_FLASH[skin];
@@ -427,54 +551,66 @@ function FXBackground(){
 }
 
 /*
-Blast effects
+#########################
+###   Blast effects   ###
+#########################
 */
 
 function FXBlast(){
+	// Initialize blast effect
 	this.init = function(){
 		this.isBlasting = false;
-		this.valMax = 100;
-		this.val = 0;
-		this.inc = 4;
-		this.x = 0;
-		this.y = 0;
-		this.width = 0;
-		this.height = 0;
+		this.valMax     = 100;
+		this.val        = 0;
+		this.inc        = 4;
+		this.x          = 0;
+		this.y          = 0;
+		this.width      = 0;
+		this.height     = 0;
 		var positsBlast = [];
 	}
 
+	// Update blast effect
 	this.update = function(){
 		if (this.val > 0){
 			this.val -= this.inc;
 		}
 		if (this.val <= 0){
 			this.clear();
-			this.isBlasting = false;
-			this.val = 0;
+			this.isBlasting  = false;
+			this.val         = 0;
+			this.x           = 0;
+			this.y           = 0;
+			this.width       = 0;
+			this.height      = 0;
+			this.positsBlast = [];
 		}
 	}
 
+	// Draw blast effect
 	this.draw = function(){
 		cbt.globalAlpha = this.val/this.valMax;
 		if (COLS_CLEAR_ROWS[skin] == COL_WHITE){
-			cbt.drawImage(imgBlast, 0, 0, 100, 100, this.x, this.y, this.width, this.height);
+			cbt.drawImage(imgBlast,   0, 0, 100, 100, this.x, this.y, this.width, this.height);
 		} else if (COLS_CLEAR_ROWS[skin] == COL_BLACK){
 			cbt.drawImage(imgBlast, 100, 0, 100, 100, this.x, this.y, this.width, this.height);
 		}
 	}
 
+	// Clear blast effect
 	this.clear = function(){
-		cbt.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cbt.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Blast
 	this.blast = function(){
-		this.isBlasting = true;
-		this.val = this.valMax;
+		this.isBlasting  = true;
+		this.val         = this.valMax;
 		this.positsBlast = getPositsBlast(piece.positsShadow);
-		this.x = board.x + this.positsBlast[0][0]*BLOCK_DIM;
-		this.y = board.y + (10 - this.positsBlast[0][1])*BLOCK_DIM;
-		this.width = (this.positsBlast[1][0] - this.positsBlast[0][0] + 1)*BLOCK_DIM;
-		this.height = 9*BLOCK_DIM;
+		this.x           = board.x + this.positsBlast[0][0] * BLOCK_DIM;
+		this.y           = board.y + (10 - this.positsBlast[0][1]) * BLOCK_DIM;
+		this.width       = (this.positsBlast[1][0] - this.positsBlast[0][0] + 1) * BLOCK_DIM;
+		this.height      = 9 * BLOCK_DIM;
 		this.draw();
 	}
 
@@ -482,18 +618,22 @@ function FXBlast(){
 }
 
 /*
-Cleared row effects
+###############################
+###   Cleared row effects   ###
+###############################
 */
 
 function FXClearedRows(){
+	// Initialize cleared rows effect
 	this.init = function(){
 		this.isFlashing = false;
-		this.rFilled = [];
-		this.valMax = 100;
-		this.val = 0;
-		this.inc = 4;
+		this.rFilled    = [];
+		this.valMax     = 100;
+		this.val        = 0;
+		this.inc        = 4;
 	}
 
+	// Update cleared rows effect
 	this.update = function(){
 		if (this.val > 0){
 			this.val -= this.inc;
@@ -501,37 +641,40 @@ function FXClearedRows(){
 		if (this.val <= 0){
 			this.clear();
 			this.isFlashing = false;
-			this.rFilled = [];
-			this.val = 0;
+			this.rFilled    = [];
+			this.val        = 0;
 		}
 	}
 
+	// Draw cleared rows effect
 	this.draw = function(){
 		cfxcr.fillStyle = COLS_CLEAR_ROWS[skin];
 		if (this.val > 0){
 			for (var i=0; i<this.rFilled.length; i++){
 				r = this.rFilled[i];
 				cfxcr.globalAlpha = Math.sqrt(this.val/this.valMax);
-				cfxcr.fillRect(board.x, board.y + (19-r)*BLOCK_DIM, 10*BLOCK_DIM, BLOCK_DIM);
+				cfxcr.fillRect(board.x, board.y + (19-r) * BLOCK_DIM, 10 * BLOCK_DIM, BLOCK_DIM);
 				if (COLS_CLEAR_ROWS[skin] == COL_WHITE){
-					cfxcr.drawImage(imgClearedRowsLeft, 0, 0, 100, 100, board.x - 6*BLOCK_DIM, board.y + (19-r)*BLOCK_DIM, 6*BLOCK_DIM, BLOCK_DIM);
-					cfxcr.drawImage(imgClearedRowsRight, 0, 0, 100, 100, board.x + 10*BLOCK_DIM, board.y + (19-r)*BLOCK_DIM, 6*BLOCK_DIM, BLOCK_DIM);
+					cfxcr.drawImage(imgClearedRowsLeft,    0, 0, 100, 100, board.x -  6 * BLOCK_DIM, board.y + (19-r) * BLOCK_DIM, 6 * BLOCK_DIM, BLOCK_DIM);
+					cfxcr.drawImage(imgClearedRowsRight,   0, 0, 100, 100, board.x + 10 * BLOCK_DIM, board.y + (19-r) * BLOCK_DIM, 6 * BLOCK_DIM, BLOCK_DIM);
 				} else if (COLS_CLEAR_ROWS[skin] == COL_BLACK){
-					cfxcr.drawImage(imgClearedRowsLeft, 100, 0, 100, 100, board.x - 6*BLOCK_DIM, board.y + (19-r)*BLOCK_DIM, 6*BLOCK_DIM, BLOCK_DIM);
-					cfxcr.drawImage(imgClearedRowsRight, 100, 0, 100, 100, board.x + 10*BLOCK_DIM, board.y + (19-r)*BLOCK_DIM, 6*BLOCK_DIM, BLOCK_DIM);
+					cfxcr.drawImage(imgClearedRowsLeft,  100, 0, 100, 100, board.x -  6 * BLOCK_DIM, board.y + (19-r) * BLOCK_DIM, 6 * BLOCK_DIM, BLOCK_DIM);
+					cfxcr.drawImage(imgClearedRowsRight, 100, 0, 100, 100, board.x + 10 * BLOCK_DIM, board.y + (19-r) * BLOCK_DIM, 6 * BLOCK_DIM, BLOCK_DIM);
 				}
 			}
 		}
 	}
 
+	// Draw cleared rows effect
 	this.clear = function(){
-		cfxcr.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cfxcr.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Flash
 	this.flash = function(rFilled){
 		this.isFlashing = true;
-		this.val = this.valMax;
-		this.rFilled = rFilled;
+		this.val        = this.valMax;
+		this.rFilled    = rFilled;
 		this.draw();
 	}
 
@@ -539,35 +682,40 @@ function FXClearedRows(){
 }
 
 /*
-Twinkle effects
+###########################
+###   Twinkle effects   ###
+###########################
 */
 
 function FXTwinkle(c, r){
+	// Initialize twinkle effect
 	this.init = function(){
-		this.c = c;
-		this.r = r;
-		this.x = board.x + this.c*BLOCK_DIM;
-		this.y = board.y + (19 - this.r)*BLOCK_DIM;
-		this.inc = 5;
-		this.valMax = 255;
-		this.val = 0;
-		this.randomRGB = getRandomRGB();
-		this.rng = Math.random();
+		this.c           = c;
+		this.r           = r;
+		this.x           = board.x + (this.c * BLOCK_DIM);
+		this.y           = board.y + ((19 - this.r) * BLOCK_DIM);
+		this.inc         = 5;
+		this.valMax      = 255;
+		this.val         = 0;
+		this.randomRGB   = getRandomRGB();
+		this.rng         = Math.random();
 		this.isTwinkling = true;
 	}
 
+	// Update twinkle effect
 	this.update = function(){
 		if (this.isTwinkling){
 			if (this.val > 0){
 				this.val -= this.inc;
 			}
 			if (this.val <= 0){
-				this.val = 0;
+				this.val         = 0;
 				this.isTwinkling = false;
 			}
 		}
 	}
 
+	// Draw twinkle effect
 	this.draw = function(){
 		if (this.val > 0 && this.val <= this.valMax){
 			cfxtw.globalAlpha = this.val/this.valMax;
@@ -617,11 +765,13 @@ function FXTwinkle(c, r){
 
 	}
 
+	// Start twinkle effect
 	this.startTwinkling = function(delay){
 		this.val  = this.valMax + delay*this.inc;
 		this.isTwinkling = true;
 	}
 
+	// Stop twinkle effect
 	this.stopTwinkling = function(){
 		this.val  = 0;
 		this.isTwinkling = false;
@@ -631,6 +781,7 @@ function FXTwinkle(c, r){
 }
 
 function FXTwinkles(){
+	// Initialize twinkle effects
 	this.init = function(){
 		this.blocksTwinkling = [];
 		for (var i=0; i<10; i++){
@@ -643,10 +794,12 @@ function FXTwinkles(){
 		this.isTwinkling = false;
 	}
 
+	// Clear twinkle effects
 	this.clear = function(){
-		cfxtw.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cfxtw.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Update twinkle effects
 	this.update = function(){
 		var isTwinklingTemp = false;
 		for (var i=0; i<10; i++){
@@ -658,6 +811,7 @@ function FXTwinkles(){
 		this.isTwinkling = isTwinklingTemp;
 	}
 
+	// Draw twinkle effects
 	this.draw = function(){
 		for (var i=0; i<10; i++){
 			for (var j=0; j<20; j++){
@@ -666,6 +820,7 @@ function FXTwinkles(){
 		}
 	}
 
+	// Start twinkle effects
 	this.startTwinkling = function(dir){
 		var jMax = 0;
 		for (var j=19; j>=0; j--){
@@ -703,6 +858,7 @@ function FXTwinkles(){
 		this.isTwinkling = true;
 	}
 
+	// Stop twinkle effects
 	this.stopTwinkling = function(){
 		for (var i=0; i<10; i++){
 			for (var j=0; j<20; j++){
@@ -716,21 +872,24 @@ function FXTwinkles(){
 }
 
 /*
-Particle effects
+############################
+###   Particle effects   ###
+############################
 */
 
 function FXParticle(fixed){
+	// Initialize particle effect
 	this.init = function(){
 		this.fixed = fixed;
 		if (this.fixed){
-			this.diam = 4;
+			this.diam     = 4;
 			this.pathName = "wavy";
 		} else {
-			this.diam = 10;
+			this.diam     = 10;
 			this.pathName = pathNames[path];
 		}
-		this.theta = Math.random() * 2 * Math.PI;
-		this.theta0 = Math.random() * 2 * Math.PI;
+		this.theta    = Math.random() * 2 * Math.PI;
+		this.theta0   = Math.random() * 2 * Math.PI;
 		this.incTheta = 0.01;
 		this.r = 0;
 		this.x = 0;
@@ -739,46 +898,48 @@ function FXParticle(fixed){
 		this.draw();
 	}
 
+	// Calculate particle effect coordinates
 	this.calcCoors = function(){
 		if (this.pathName == "wavy"){
-			this.r = 1.5 * (STAGE_WIDTH/2) * this.theta/(2*Math.PI);
-			this.x = this.r * Math.cos(Math.sin(2*this.theta)/2 + this.theta0) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(Math.sin(2*this.theta)/2 + this.theta0) + STAGE_HEIGHT/2;
+			this.r = 1.5 * (STAGE_DIM/2) * this.theta/(2*Math.PI);
+			this.x = this.r * Math.cos(Math.sin(2*this.theta)/2 + this.theta0) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(Math.sin(2*this.theta)/2 + this.theta0) + STAGE_DIM/2;
 		} else if (this.pathName == "clover"){
-			this.r = 1.9 * (STAGE_WIDTH/2) * Math.abs(Math.sin(1.5 * this.theta) * Math.cos(1.5 * this.theta));
-			this.x = this.r * Math.cos(this.theta) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta) + STAGE_HEIGHT/2;
+			this.r = 1.9 * (STAGE_DIM/2) * Math.abs(Math.sin(1.5 * this.theta) * Math.cos(1.5 * this.theta));
+			this.x = this.r * Math.cos(this.theta) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta) + STAGE_DIM/2;
 		} else if (this.pathName == "spiral"){
-			this.r = 1.1 * (STAGE_WIDTH/2) * this.theta/(2*Math.PI);
-			this.x = this.r * Math.cos(2.75 * this.theta) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(2.75 * this.theta) + STAGE_HEIGHT/2;
+			this.r = 1.1 * (STAGE_DIM/2) * this.theta/(2*Math.PI);
+			this.x = this.r * Math.cos(2.75 * this.theta) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(2.75 * this.theta) + STAGE_DIM/2;
 		} else if (this.pathName == "butterfly"){
-			this.r = 0.25 * (STAGE_WIDTH/2) * (Math.exp(Math.cos(this.theta)) - Math.exp(1) * Math.cos(4*this.theta) + Math.pow(Math.sin(this.theta/12), 5));
-			this.x = this.r * Math.cos(this.theta - Math.PI/2) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta - Math.PI/2) + STAGE_HEIGHT/2;
+			this.r = 0.25 * (STAGE_DIM/2) * (Math.exp(Math.cos(this.theta)) - Math.exp(1) * Math.cos(4*this.theta) + Math.pow(Math.sin(this.theta/12), 5));
+			this.x = this.r * Math.cos(this.theta - Math.PI/2) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta - Math.PI/2) + STAGE_DIM/2;
 		} else if (this.pathName == "infinity"){
-			this.r = 0.9 * (STAGE_WIDTH/2) * Math.pow(Math.abs(Math.cos(this.theta + Math.PI/2)), 3);
-			this.x = this.r * Math.cos(this.theta + Math.PI/2) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta + Math.PI/2) + STAGE_HEIGHT/2;
+			this.r = 0.9 * (STAGE_DIM/2) * Math.pow(Math.abs(Math.cos(this.theta + Math.PI/2)), 3);
+			this.x = this.r * Math.cos(this.theta + Math.PI/2) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta + Math.PI/2) + STAGE_DIM/2;
 		} else if (this.pathName == "boomerang"){
-			this.r = 0.45 * (STAGE_WIDTH/2) * (1 - Math.sin(3*(this.theta -  - Math.PI/6)));
-			this.x = this.r * Math.cos(this.theta - Math.PI/6) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta - Math.PI/6) + STAGE_HEIGHT/2;
+			this.r = 0.45 * (STAGE_DIM/2) * (1 - Math.sin(3*(this.theta -  - Math.PI/6)));
+			this.x = this.r * Math.cos(this.theta - Math.PI/6) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta - Math.PI/6) + STAGE_DIM/2;
 		} else if (this.pathName == "circle"){
-			this.r = 1.1 * (STAGE_WIDTH/2);
-			this.x = this.r * Math.cos(this.theta) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta) + STAGE_HEIGHT/2;
+			this.r = 1.1 * (STAGE_DIM/2);
+			this.x = this.r * Math.cos(this.theta) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta) + STAGE_DIM/2;
 		} else if (this.pathName == "flower"){
-			this.r = 0.9 * (STAGE_WIDTH/2) * Math.sin(13.5*this.theta/3);
-			this.x = this.r * Math.cos(this.theta - Math.PI/2) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta - Math.PI/2) + STAGE_HEIGHT/2;
+			this.r = 0.9 * (STAGE_DIM/2) * Math.sin(13.5*this.theta/3);
+			this.x = this.r * Math.cos(this.theta - Math.PI/2) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta - Math.PI/2) + STAGE_DIM/2;
 		} else if (this.pathName == "suck"){
-			this.r = 1.5 * (STAGE_WIDTH/2) * (1 - this.theta/(2*Math.PI));
-			this.x = this.r * Math.cos(this.theta0) + STAGE_WIDTH/2;
-			this.y = this.r * Math.sin(this.theta0) + STAGE_HEIGHT/2;
+			this.r = 1.5 * (STAGE_DIM/2) * (1 - this.theta/(2*Math.PI));
+			this.x = this.r * Math.cos(this.theta0) + STAGE_DIM/2;
+			this.y = this.r * Math.sin(this.theta0) + STAGE_DIM/2;
 		}
 	}
 
+	// Update particle effect
 	this.update = function(){
 		// Reset or update theta
 		if (this.theta == 2*Math.PI){
@@ -791,10 +952,12 @@ function FXParticle(fixed){
 		} else {
 			this.theta = 2*Math.PI;
 		}
+
 		// Update coordinates
 		this.calcCoors();
 	}
 
+	// Draw particle effect
 	this.draw = function(){
 		if (this.fixed){
 			cfxpa.fillStyle = fxBackground.getRGBMain();
@@ -814,6 +977,7 @@ function FXParticle(fixed){
 }
 
 function FXParticles(){
+	// Initialize particle effects
 	this.init = function(){
 		this.particles = []
 		for (var i=0; i<NUM_PARTICLES; i++){
@@ -827,10 +991,12 @@ function FXParticles(){
 		}
 	}
 
+	// Clear particle effects
 	this.clear = function(){
-		cfxpa.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cfxpa.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Update particle effects
 	this.update = function(){
 		for (var i=0; i<this.particles.length; i++){
 			this.particles[i].update();
@@ -838,6 +1004,7 @@ function FXParticles(){
 		}
 	}
 
+	// Draw particle effects
 	this.draw = function(){
 		for (var i=0; i<this.particles.length; i++){
 			this.particles[i].draw();
@@ -848,6 +1015,7 @@ function FXParticles(){
 	this.init();
 }
 
+// Get random RGB value
 function getRandomRGB(){
 	r = parseInt(Math.random() * 255);
 	g = parseInt(Math.random() * 255);
@@ -856,30 +1024,37 @@ function getRandomRGB(){
 }
 
 /*
-Effects loops
+#########################
+###   Effects loops   ###
+#########################
 */
 
+// Effects loop
 function fxLoop(){
 	// Background
 	fxBackground.clear();
 	fxBackground.update();
 	fxBackground.draw();
+
 	// Particles
 	fxParticles.clear();
 	fxParticles.update();
 	fxParticles.draw();
+
 	// Blast
 	if (fxBlast.isBlasting){
 		fxBlast.clear();
 		fxBlast.update();
 		fxBlast.draw();
 	}
+
 	// Twinkles
 	if (fxTwinkles.isTwinkling){
 		fxTwinkles.clear();
 		fxTwinkles.update();
 		fxTwinkles.draw();
 	}
+
 	// Cleared rows
 	if (fxClearedRows.isFlashing){
 		fxClearedRows.clear();
@@ -888,13 +1063,16 @@ function fxLoop(){
 	}
 }
 
+// Particle effects loop
 function fxParticlesLoop(){
-	path = (path + 1) % NUM_PATHS;
+	path     = (path + 1) % NUM_PATHS;
 	pathName = pathNames[path];
 }
 
 /*
-Move loop
+#####################
+###   Move loop   ###
+#####################
 */
 
 function moveLoop(){
@@ -912,47 +1090,55 @@ function moveLoop(){
 }
 
 /*
-Board
+#################
+###   Board   ###
+#################
 */
 
 function Board(x, y){
+	// Initialize board
 	this.init = function(){
 		this.x = x;
 		this.y = y;
 	}
 
+	// Draw board
 	this.draw = function(){
-		cbd.globalAlpha = 0.75;
+		cbd.globalAlpha = 0.85;
 		cbd.fillStyle = COLS_BOARD[skin];
-		cbd.fillRect(this.x-2, this.y-2, 10*BLOCK_DIM+4, 20*BLOCK_DIM+4);
-		cbd.globalAlpha = 1;
+		cbd.fillRect(this.x - 2, this.y - 2, 10 * BLOCK_DIM + 4, 20 * BLOCK_DIM + 4);
 		cbd.strokeStyle = COLS_BOARD_BORDER[skin];
 		cbd.lineWidth = 2;
-		cbd.strokeRect(this.x-2, this.y-2, 10*BLOCK_DIM+4, 20*BLOCK_DIM+4);
+		cbd.strokeRect(this.x - 2, this.y - 2, 10 * BLOCK_DIM + 4, 20 * BLOCK_DIM + 4);
 	}
 
+	// Clear board
 	this.clear = function(){
-		cbd.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cbd.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
 	this.init();
 }
 
 /*
-Block
+#################
+###   Block   ###
+#################
 */
 
 function Block(c, r, filled){
+	// Initialize block
 	this.init = function(){
-		this.c = c;
-		this.r = r;
-		this.x = board.x + this.c*BLOCK_DIM;
-		this.y = board.y + (19 - this.r)*BLOCK_DIM;
-		this.filled = filled;
+		this.c         = c;
+		this.r         = r;
+		this.x         = board.x + (this.c * BLOCK_DIM);
+		this.y         = board.y + ((19 - this.r) * BLOCK_DIM);
+		this.filled    = filled;
 		this.randomRGB = getRandomRGB();
-		this.alpha = 0.25 + 0.75*Math.random();
+		this.alpha     = 0.25 + (0.75 * Math.random());
 	}
 
+	// Draw block
 	this.draw = function(){
 		if (this.filled){
 			if (skinName == "window"){
@@ -970,6 +1156,7 @@ function Block(c, r, filled){
 	this.init();
 }
 
+// Initialize blocks
 function initBlocks(){
 	blocks = [];
 	for (var i=0; i<10; i++){
@@ -981,10 +1168,12 @@ function initBlocks(){
 	}
 }
 
+// Clear blocks
 function clearBlocks(){
-	cbl.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+	cbl.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 }
 
+// Draw blocks
 function drawBlocks(){
 	for (var i=0; i<10; i++){
 		for (var j=0; j<20; j++){
@@ -994,35 +1183,40 @@ function drawBlocks(){
 }
 
 /*
-Piece
+#################
+###   Piece   ###
+#################
 */
 
 function Piece(type){
+	// Initialize piece
 	this.init = function(){
 		// Type, rotation, column and row of upper-left anchor point, positions, and shadow positions
-		// Parameter values
 		if (type == "r"){
 			this.type = pieceTypes[parseInt(Math.random() * pieceTypes.length)];
 		} else {
 			this.type = type;
 		}
-		this.rot = "1";
-		this.ca = 3;
-		this.ra = 18;
+		this.rot    = "1";
+		this.ca     = 3;
+		this.ra     = 18;
 		this.posits = getPosits(this.type, this.rot, this.ca, this.ra);
+
 		// Shadow parameter values
-		this.caShadow = this.ca;
-		this.raShadow = this.ra;
+		this.caShadow     = this.ca;
+		this.raShadow     = this.ra;
 		this.positsShadow = [];
 	}
 
+	// Update piece parameters
 	this.updateParameters = function(rot, ca, ra, posits){
-		this.rot = rot;
-		this.ca = ca;
-		this.ra = ra;
+		this.rot    = rot;
+		this.ca     = ca;
+		this.ra     = ra;
 		this.posits = posits;
 	}
 
+	// Update piece shadow
 	this.updateShadow = function(){
 		var raPrev = this.ra;
 		var positsPrev = this.posits;
@@ -1035,19 +1229,22 @@ function Piece(type){
         		break;
         	}
     	}
-    	this.caShadow = this.ca;
-    	this.raShadow = raPrev; 
+    	this.caShadow     = this.ca;
+    	this.raShadow     = raPrev; 
     	this.positsShadow = positsPrev;
 	}
 
+	// Clear piece itself
 	this.clear = function(){
-		cpi.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		cpi.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Clear piece shadow
 	this.clearShadow = function(){
-		csh.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+		csh.clearRect(0, 0, STAGE_DIM, STAGE_DIM);
 	}
 
+	// Draw piece itself
 	this.draw = function(){
 		for (var i=0; i<this.posits.length; i++){
 			var posit = this.posits[i];
@@ -1055,6 +1252,7 @@ function Piece(type){
 		}
 	}
 
+	// Draw piece shadow
 	this.drawShadow = function(){
 		csh.globalAlpha = 1;
 		if (skinName == "rainbow" || skinName == "stone" || skinName == "ball" || skinName == "window"){
@@ -1279,52 +1477,52 @@ function getPosits(type, rot, ca, ra){
 			switch (rot){
 				case "1":
 				case "3":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+3, ra-1]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+3, ra-1]];
 				case "2":
 				case "4":
-					return [[ca+2, ra], [ca+2, ra-1], [ca+2, ra-2], [ca+2, ra-3]];
+					return [[ca+2, ra  ], [ca+2, ra-1], [ca+2, ra-2], [ca+2, ra-3]];
 			}
 		case "l":
 			switch (rot){
 				case "1":
-					return [[ca+1, ra], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-2]];
+					return [[ca+1, ra  ], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-2]];
 				case "2":
-					return [[ca, ra-2], [ca, ra-1], [ca+1, ra-1], [ca+2, ra-1]];
+					return [[ca,   ra-2], [ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1]];
 				case "3":
-					return [[ca, ra], [ca+1, ra], [ca+1, ra-1], [ca+1, ra-2]];
+					return [[ca,   ra  ], [ca+1, ra  ], [ca+1, ra-1], [ca+1, ra-2]];
 				case "4":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra  ]];
 			}
 		case "lb":
 			switch (rot){
 				case "1":
-					return [[ca, ra-2], [ca+1, ra-2], [ca+1, ra-1], [ca+1, ra]];
+					return [[ca,   ra-2], [ca+1, ra-2], [ca+1, ra-1], [ca+1, ra  ]];
 				case "2":
-					return [[ca, ra], [ca, ra-1], [ca+1, ra-1], [ca+2, ra-1]];
+					return [[ca,   ra  ], [ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1]];
 				case "3":
-					return [[ca+2, ra], [ca+1, ra], [ca+1, ra-1], [ca+1, ra-2]];
+					return [[ca+2, ra  ], [ca+1, ra  ], [ca+1, ra-1], [ca+1, ra-2]];
 				case "4":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra-2]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra-2]];
 			}
 		case "t":
 			switch (rot){
 				case "1":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+1, ra]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+1, ra  ]];
 				case "2":
-					return [[ca+1, ra], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-1]];
+					return [[ca+1, ra  ], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-1]];
 				case "3":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+1, ra-2]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+2, ra-1], [ca+1, ra-2]];
 				case "4":
-					return [[ca+1, ra], [ca+1, ra-1], [ca+1, ra-2], [ca, ra-1]];
+					return [[ca+1, ra  ], [ca+1, ra-1], [ca+1, ra-2], [ca,   ra-1]];
 			}
 		case "z":
 			switch (rot){
 				case "1":
 				case "3":
-					return [[ca, ra-1], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-2]];
+					return [[ca,   ra-1], [ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-2]];
 				case "2":
 				case "4":
-					return [[ca+2, ra], [ca+2, ra-1], [ca+1, ra-1], [ca+1, ra-2]];
+					return [[ca+2, ra  ], [ca+2, ra-1], [ca+1, ra-1], [ca+1, ra-2]];
 			}
 		case "zb":
 			switch (rot){
@@ -1333,7 +1531,7 @@ function getPosits(type, rot, ca, ra){
 					return [[ca+1, ra-2], [ca+2, ra-2], [ca+2, ra-1], [ca+3, ra-1]];
 				case "2":
 				case "4":
-					return [[ca+1, ra], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra-2]];
+					return [[ca+1, ra  ], [ca+1, ra-1], [ca+2, ra-1], [ca+2, ra-2]];
 			}
 		case "o":
 			return [[ca+1, ra-1], [ca+1, ra-2], [ca+2, ra-1], [ca+2, ra-2]];
@@ -1383,7 +1581,6 @@ function newPiece(){
 	piece.draw();
 	if (!isValidPosits(piece.posits)){
 		gameState = "over";
-		console.log("Game Over");
 	} else {
 		piece.updateShadow();
 		piece.drawShadow();
@@ -1475,27 +1672,37 @@ function clearFilledRows(rFilled){
 }
 
 /*
-Score keeper
+########################
+###   Score keeper   ###
+########################
 */
 
 function ScoreKeeper(){
+	// Initialize score keeper
 	this.init = function(){
 		this.rowsCleared = 0;
-		this.score = 0;
+		this.score       = 0;
 	}
 
+	// Update score keeper
 	this.update = function(numRowsCleared){
-		if (parseInt((this.rowsCleared + numRowsCleared)/NUM_CLEARS_SKIN_CHANGE) > parseInt(this.rowsCleared/NUM_CLEARS_SKIN_CHANGE)){
+		if (parseInt((this.rowsCleared + numRowsCleared) / NUM_CLEARS_SKIN_CHANGE) > parseInt(this.rowsCleared / NUM_CLEARS_SKIN_CHANGE)){
 			skin = (skin + 1) % NUM_SKINS;
 			skinName = skinNames[skin];
 			board.clear();
 			board.draw();
 			fxBackground.clear();
-			fxBackground.newSkin();
+			fxBackground.applyNewSkin();
 			fxBackground.draw();
 		}
 		this.rowsCleared += numRowsCleared;
-		this.score += numRowsCleared**2;
+		this.score       += numRowsCleared**2;
+	}
+
+	// Reset score keeper
+	this.reset = function(){
+		this.rowsCleared = 0;
+		this.score       = 0;
 	}
 
 	this.init();
