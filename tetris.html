@@ -124,7 +124,7 @@ var imgBlast;
 var audioMusic;
 var audioShovel;
 
-// Game state, canvases, objects, and maps
+// Game state, canvases, and objects
 var gameState;
 var gameInterval;
 var gameTimeout;
@@ -146,8 +146,8 @@ var fxInterval;
 var fxParticlesInterval;
 var board;
 var blocks;
+const pieceTypes = ["i", "l", "lb", "t", "z", "zb", "o"];
 var piece;
-var pieceTypes = ["i", "l", "lb", "t", "z", "zb", "o"];
 var scoreKeeper;
 
 /*
@@ -230,7 +230,7 @@ function intro(){
     imgBlast.src            = "media/blast.png";
 
 	// Audio
-	audioMusic  = document.getElementById("audioMusic");
+	audioMusic = document.getElementById("audioMusic");
 	audioShovel = document.getElementById("audioShovel");
 
     // Game state
@@ -288,6 +288,7 @@ function onKeyUp(e){
 	            placePiece();
 	            checkFilledRows();
 	            fxBackground.flash();
+	            audioShovel.volume = 0.5;
 	            audioShovel.currentTime = 0.1;
             	audioShovel.play();
                 break;
@@ -301,6 +302,7 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.volume = 0.5;
             	audioShovel.currentTime = 0.1;
             	audioShovel.play();
                 break;
@@ -314,6 +316,7 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.volume = 0.5;
             	audioShovel.currentTime = 0.1;
             	audioShovel.play();
             	break;
@@ -341,6 +344,7 @@ function onKeyUp(e){
             		piece.draw();
             		piece.drawShadow();
             	}
+            	audioShovel.volume = 0.5;
             	audioShovel.currentTime = 0.1;
             	audioShovel.play();
                 break;
@@ -966,7 +970,7 @@ function FXParticle(fixed){
         	cfxpa.fill();
 		} else {
 			if (COLS_FLASH[skin] == 255){
-				cfxpa.drawImage(imgParticle, 0, 0, 100, 100, this.x - this.diam/2, this.y - this.diam/2, this.diam, this.diam);
+				cfxpa.drawImage(imgParticle,   0, 0, 100, 100, this.x - this.diam/2, this.y - this.diam/2, this.diam, this.diam);
 			} else if (COLS_FLASH[skin] == 0){
 				cfxpa.drawImage(imgParticle, 100, 0, 100, 100, this.x - this.diam/2, this.y - this.diam/2, this.diam, this.diam);
 			}
@@ -1458,13 +1462,6 @@ function Piece(type){
 		}
 		csh.closePath();
 		csh.stroke();
-		
-		/*
-		for (var i=0; i<this.positsShadow.length; i++){
-			var posit = this.positsShadow[i];
-			csh.strokeRect(board.x + posit[0]*BLOCK_DIM + 2, board.y + (19 - posit[1])*BLOCK_DIM + 2, BLOCK_DIM - 4, BLOCK_DIM - 4);
-		}
-		*/
 	}
 
 	this.init();
