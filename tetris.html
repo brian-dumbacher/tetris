@@ -5,7 +5,7 @@
 <title>Tetris</title>
 </head>
 
-<body bgcolor="#CCCCCC">
+<body style="background-color: #CCCCCC;">
 
 <!--
 ####################################
@@ -34,15 +34,15 @@ Cleared rows effects canvas
 -->
 
 <div id="divCanvases" style="position: relative; border: 2px solid black; margin: 0 auto; width: 600px; height: 600px;">
-<canvas id="canvasFXBG" style="z-index: 1; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasFXPA" style="z-index: 2; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBD"   style="z-index: 3; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBT"   style="z-index: 4; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasBL"   style="z-index: 5; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasPI"   style="z-index: 6; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasSH"   style="z-index: 7; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasFXTW" style="z-index: 8; position:absolute; left:0px; top:0px;"></canvas>
-<canvas id="canvasFXCR" style="z-index: 9; position:absolute; left:0px; top:0px;"></canvas>
+	<canvas id="canvasFXBG" style="z-index: 1; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasFXPA" style="z-index: 2; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasBD"   style="z-index: 3; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasBT"   style="z-index: 4; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasBL"   style="z-index: 5; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasPI"   style="z-index: 6; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasSH"   style="z-index: 7; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasFXTW" style="z-index: 8; position: absolute; left: 0px; top: 0px;"></canvas>
+	<canvas id="canvasFXCR" style="z-index: 9; position: absolute; left: 0px; top: 0px;"></canvas>
 </div>
 
 <!--
@@ -55,8 +55,23 @@ Cleared rows effects canvas
 -->
 
 <div id="divAudio" style="align-items: center; display: flex; justify-content: center; position: relative; margin: 0 auto; width: 600px;">
-<audio id="audioMusic" src="media/connected_yours_forever.mp3" loop></audio>
-<audio id="audioShovel" src="media/shovel.mp3"></audio>
+	<audio id="audioMusic"  src="media/connected_yours_forever.mp3" loop></audio>
+	<audio id="audioShovel" src="media/shovel.mp3"></audio>
+</div>
+
+<!--
+#################
+###   Audio   ###
+#################
+-->
+
+<div id="divHiddenImages">
+	<img id="imageBlast"            src="media/blast.png"              style="display: none;">
+	<img id="imageBlock"            src="media/block.png"              style="display: none;">
+	<img id="imageClearedRowsLeft"  src="media/cleared_rows_left.png"  style="display: none;">
+	<img id="imageClearedRowsRight" src="media/cleared_rows_right.png" style="display: none;">
+	<img id="imageIntro"            src="media/intro.png"              style="display: none;">
+	<img id="imageParticle"         src="media/particle.png"           style="display: none;">
 </div>
 
 <script type="text/javascript">
@@ -67,7 +82,7 @@ Cleared rows effects canvas
 ##########################################
 */
 
-// On-load function
+// Window onload function
 window.onload = intro;
 
 // Dimensions and delays
@@ -215,22 +230,17 @@ function intro(){
 	cfxcr             = canvasFXCR.getContext('2d');
 
 	// Images
-	imgIntro                = new Image();
-	imgIntro.src            = "media/intro.png";
-	imgIntro.onload         = function(){cbd.drawImage(imgIntro, 0, 0, STAGE_DIM, STAGE_DIM, 0, 0, STAGE_DIM, STAGE_DIM);}
-	imgBlock                = new Image();
-    imgBlock.src            = "media/block.png";
-    imgParticle             = new Image();
-    imgParticle.src         = "media/particle.png";
-    imgClearedRowsLeft      = new Image();
-    imgClearedRowsLeft.src  = "media/cleared_rows_left.png";
-    imgClearedRowsRight     = new Image();
-    imgClearedRowsRight.src = "media/cleared_rows_right.png";
-    imgBlast                = new Image();
-    imgBlast.src            = "media/blast.png";
+	imgIntro            = document.getElementById("imageIntro");
+	imgBlock            = document.getElementById("imageBlock");
+    imgParticle         = document.getElementById("imageParticle");
+    imgClearedRowsLeft  = document.getElementById("imageClearedRowsLeft");
+    imgClearedRowsRight = document.getElementById("imageClearedRowsRight");
+    imgBlast            = document.getElementById("imageBlast");
+
+	cbd.drawImage(imgIntro, 0, 0, STAGE_DIM, STAGE_DIM, 0, 0, STAGE_DIM, STAGE_DIM);
 
 	// Audio
-	audioMusic = document.getElementById("audioMusic");
+	audioMusic  = document.getElementById("audioMusic");
 	audioShovel = document.getElementById("audioShovel");
 
     // Game state
@@ -254,7 +264,7 @@ function intro(){
     // Score keeper
     scoreKeeper = new ScoreKeeper();
 
-	// Event listeners
+	// Event listener
 	window.addEventListener("keyup", onKeyUp);
 }
 
